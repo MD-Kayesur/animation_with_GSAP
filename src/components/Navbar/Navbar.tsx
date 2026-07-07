@@ -25,6 +25,9 @@ export default function Navbar() {
         <NavLink to="/hero" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Hero Showcase
         </NavLink>
+        <NavLink to="/panels" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          Horizontal Scroll
+        </NavLink>
       </nav>
       <div className="navbar-actions">
         <a href="https://github.com/MD-Kayesur/animation_with_GSAP" target="_blank" rel="noreferrer" className="github-btn">
