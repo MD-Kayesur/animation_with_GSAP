@@ -16,6 +16,9 @@ export default function Navbar() {
         <NavLink to="/about" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           About
         </NavLink>
+        <NavLink to="/follow" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          Mouse Follow
+        </NavLink>
       </nav>
       <div className="navbar-actions">
         <a href="https://github.com/MD-Kayesur/animation_with_GSAP" target="_blank" rel="noreferrer" className="github-btn">

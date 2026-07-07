@@ -1,0 +1,38 @@
+#Wrap {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  overflow: hidden;
+}
+
+#Wrap .FollowBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  pointer-events: none; /* Ignore mouse events to not block mousemove on the container */
+  box-shadow: var(--shadow);
+}
+
+#Wrap .FollowBox:nth-child(1) {
+  z-index: 4;
+}
+
+#Wrap .FollowBox:nth-child(2) {
+  z-index: 3;
+}
+
+#Wrap .FollowBox:nth-child(3) {
+  z-index: 2;
+}
+
+#Wrap .FollowBox:nth-child(4) {
+  z-index: 1;
+}

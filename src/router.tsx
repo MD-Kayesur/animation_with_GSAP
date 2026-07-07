@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import MainLayout from './components/Layout/MainLayout'
 import Home from './pages/Home'
 import About from './pages/About'
+import FollowBox from './components/FollowBox/FollowBox'
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
       {
         path: 'about',
         element: <About />,
+      },
+      {
+        path: 'follow',
+        element: <FollowBox />,
       },
     ],
   },
