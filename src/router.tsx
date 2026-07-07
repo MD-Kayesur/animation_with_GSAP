@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import About from './pages/About'
 import FollowBox from './components/FollowBox/FollowBox'
 import FollowBoxDynamic from './components/FollowBoxDynamic/FollowBoxDynamic'
+import Hero from './components/Hero/Hero'
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
       {
         path: 'follow-dynamic',
         element: <FollowBoxDynamic />,
+      },
+      {
+        path: 'hero',
+        element: <Hero />,
       },
     ],
   },

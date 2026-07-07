@@ -22,6 +22,9 @@ export default function Navbar() {
         <NavLink to="/follow-dynamic" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Dynamic Follow
         </NavLink>
+        <NavLink to="/hero" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          Hero Showcase
+        </NavLink>
       </nav>
       <div className="navbar-actions">
         <a href="https://github.com/MD-Kayesur/animation_with_GSAP" target="_blank" rel="noreferrer" className="github-btn">
