@@ -40,6 +40,9 @@ export default function Navbar() {
         <NavLink to="/panels" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>
           Horizontal Scroll
         </NavLink>
+        <NavLink to="/scroll-boxes" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>
+          Scroll Boxes
+        </NavLink>
         <div className="mobile-only-action">
           <a href="https://github.com/MD-Kayesur/animation_with_GSAP" target="_blank" rel="noreferrer" className="github-btn" onClick={closeMenu}>
             GitHub

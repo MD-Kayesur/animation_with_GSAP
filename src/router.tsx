@@ -6,6 +6,7 @@ import FollowBox from './components/FollowBox/FollowBox'
 import FollowBoxDynamic from './components/FollowBoxDynamic/FollowBoxDynamic'
 import Hero from './components/Hero/Hero'
 import PanelsSlider from './components/PanelsSlider/PanelsSlider'
+import ScrollBoxes from './components/ScrollBoxes/ScrollBoxes'
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
       {
         path: 'panels',
         element: <PanelsSlider />,
+      },
+      {
+        path: 'scroll-boxes',
+        element: <ScrollBoxes />,
       },
     ],
   },

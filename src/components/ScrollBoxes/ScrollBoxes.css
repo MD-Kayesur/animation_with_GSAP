@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;600;700&display=swap');
+
+.scroll-boxes-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 0;
+  min-height: 520vh; /* Generous height to allow scrolling trigger for 6 boxes */
+  background-color: #0d0e15;
+  color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.scroll-title {
+  font-family: 'Signika Negative', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-top: 50px;
+  margin-bottom: 10px;
+  text-align: center;
+  background: linear-gradient(135deg, #ffffff 30%, #a7a9be 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.scroll-subtitle {
+  font-family: 'Signika Negative', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: #8f93a2;
+  margin-bottom: 75vh; /* Pushes the boxes way down for scrolling */
+  text-align: center;
+}
+
+.scroll-boxes-container .box {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Signika Negative', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #ffffff;
+  border-radius: 12px;
+  margin-bottom: 75vh; /* Pushes subsequent boxes down */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Premium gradients for the boxes */
+.scroll-boxes-container .box:nth-of-type(1) {
+  background: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
+  box-shadow: 0 15px 35px rgba(255, 0, 127, 0.25);
+}
+
+.scroll-boxes-container .box:nth-of-type(2) {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  box-shadow: 0 15px 35px rgba(0, 242, 254, 0.25);
+}
+
+.scroll-boxes-container .box:nth-of-type(3) {
+  background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+  box-shadow: 0 15px 35px rgba(255, 78, 80, 0.25);
+}
+
+.scroll-boxes-container .box:nth-of-type(4) {
+  background: linear-gradient(135deg, #da22ff 0%, #9114ff 100%);
+  box-shadow: 0 15px 35px rgba(218, 34, 255, 0.25);
+}
+
+.scroll-boxes-container .box:nth-of-type(5) {
+  background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+  box-shadow: 0 15px 35px rgba(248, 87, 166, 0.25);
+}
+
+.scroll-boxes-container .box:nth-of-type(6) {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  box-shadow: 0 15px 35px rgba(56, 239, 125, 0.25);
+}
