@@ -112,6 +112,12 @@
 }
 
 /* ── Responsive: center boxes on narrow screens ── */
+@media (max-width: 1024px) {
+  .parallax-info {
+    padding: 40px 24px 32px;
+  }
+}
+
 @media (max-width: 768px) {
   .box {
     width: 80px;
