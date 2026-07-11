@@ -6,6 +6,15 @@ import './ScrollSmootherParallax.css'
 // Register plugins
 gsap.registerPlugin(ScrollTrigger)
 
+/**
+ * ScrollSmootherParallax
+ *
+ * Demonstrates custom parallax speed via GSAP ScrollTrigger.
+ * - "ref" box scrolls at native speed (1.0)
+ * - "a", "b", "c" boxes scroll at speed 0.5 (half speed)
+ * - Each box's top edge aligns with ref's top edge when centered in the viewport
+ */
+
 export default function ScrollSmootherParallax() {
   const containerRef = useRef<HTMLDivElement>(null)
 
