@@ -98,8 +98,9 @@
 
 .info-desc {
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text);
+  letter-spacing: 0.01em;
 }
 
 .info-desc code {
