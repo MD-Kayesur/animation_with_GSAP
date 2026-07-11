@@ -17,8 +17,8 @@
   height: 300vh;
 }
 
-/* ── Base box styles ── */
-.box {
+/* ── Base box styles — scoped to this page only ── */
+.smoother-parallax-container .box {
   width: 120px;
   position: absolute;
   z-index: 10;
@@ -39,13 +39,13 @@
   user-select: none;
 }
 
-.box:hover {
+.smoother-parallax-container .box:hover {
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22);
   transform: scale(1.04);
 }
 
 /* ref — normal scroll speed, pink-purple gradient */
-.box-ref {
+.smoother-parallax-container .box-ref {
   top: 80vh;
   left: 8%;
   height: 100px;
@@ -54,7 +54,7 @@
 }
 
 /* a — speed 0.5, cyan-blue gradient */
-.box-a {
+.smoother-parallax-container .box-a {
   top: 80vh;
   left: calc(8% + 150px);
   height: 100px;
@@ -63,7 +63,7 @@
 }
 
 /* b — speed 0.5, yellow-red gradient, taller */
-.box-b {
+.smoother-parallax-container .box-b {
   top: 80vh;
   left: calc(8% + 300px);
   height: 200px;
@@ -72,7 +72,7 @@
 }
 
 /* c — speed 0.5, purple gradient, tallest */
-.box-c {
+.smoother-parallax-container .box-c {
   top: 80vh;
   left: calc(8% + 450px);
   height: 400px;
@@ -119,13 +119,13 @@
 }
 
 @media (max-width: 768px) {
-  .box {
+  .smoother-parallax-container .box {
     width: 80px;
     font-size: 1.1rem;
   }
 
-  .box-ref  { left: 2%; }
-  .box-a    { left: calc(2% + 100px); }
-  .box-b    { left: calc(2% + 200px); }
-  .box-c    { left: calc(2% + 300px); }
+  .smoother-parallax-container .box-ref { left: 2%; }
+  .smoother-parallax-container .box-a   { left: calc(2% + 100px); }
+  .smoother-parallax-container .box-b   { left: calc(2% + 200px); }
+  .smoother-parallax-container .box-c   { left: calc(2% + 300px); }
 }
