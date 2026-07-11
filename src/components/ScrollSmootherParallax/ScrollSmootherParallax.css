@@ -41,6 +41,7 @@
 
 .box:hover {
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22);
+  transform: scale(1.04);
 }
 
 /* ref — normal scroll speed, pink-purple gradient */
