@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Animations</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 3rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: #111;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.4s ease;
+        }
+        .card:hover {
+            transform: translateY(-12px);
+        }
+        .card iframe, .card canvas {
+            width: 100%;
+            height: 260px;
+            border: none;
+        }
+        .card h3 {
+            padding: 16px;
+            text-align: center;
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>All Hero Animations</h1>
+        
+        <div class="grid">
+            <div class="card">
+                <iframe src="hero.html"></iframe>
+                <h3>Hero 1</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero2.html"></iframe>
+                <h3>Hero 2</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero3.html"></iframe>
+                <h3>Hero 3</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero4.html"></iframe>
+                <h3>Hero 4</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero5.html"></iframe>
+                <h3>Hero 5</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero6.html"></iframe>
+                <h3>Hero 6</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero7.html"></iframe>
+                <h3>Hero 7</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero8.html"></iframe>
+                <h3>Hero 8</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero9.html"></iframe>
+                <h3>Hero 9</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero10.html"></iframe>
+                <h3>Hero 10</h3>
+            </div>
+            <div class="card">
+                <iframe src="hero11.html"></iframe>
+                <h3>Hero 11</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("Main page loaded with all hero animations");
+    </script>
+</body>
+</html>
