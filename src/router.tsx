@@ -8,6 +8,7 @@ import Hero from './components/Hero/Hero'
 import PanelsSlider from './components/PanelsSlider/PanelsSlider'
 import ScrollBoxes from './components/ScrollBoxes/ScrollBoxes'
 import ScrollSmootherParallax from './components/ScrollSmootherParallax/ScrollSmootherParallax'
+import AddToBasket from './components/AddToBasket/AddToBasket'
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +46,10 @@ export const router = createBrowserRouter([
       {
         path: 'scroll-smoother-parallax',
         element: <ScrollSmootherParallax />,
+      },
+      {
+        path: 'add-to-basket',
+        element: <AddToBasket />,
       },
     ],
   },

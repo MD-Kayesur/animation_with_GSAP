@@ -46,6 +46,9 @@ export default function Navbar() {
         <NavLink to="/scroll-smoother-parallax" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>
           Smoother Parallax
         </NavLink>
+        <NavLink to="/add-to-basket" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>
+          Add to Basket
+        </NavLink>
         <div className="mobile-only-action">
           <a href="https://github.com/MD-Kayesur/animation_with_GSAP" target="_blank" rel="noreferrer" className="github-btn" onClick={closeMenu}>
             GitHub

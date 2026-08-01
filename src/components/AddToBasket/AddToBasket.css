@@ -1,0 +1,25 @@
+.add-to-basket-stage {
+  --font-mono: var(--mono, ui-monospace, Consolas, monospace);
+  --foreground: var(--text-h, #08060d);
+  --background: var(--bg, #ffffff);
+  --layer: var(--code-bg, #f4f3ec);
+  --border: var(--border, #e5e4e7);
+  --accent: var(--accent, #aa3bff);
+}
+
+@media (prefers-color-scheme: dark) {
+  .add-to-basket-stage {
+    --foreground: var(--text-h, #f3f4f6);
+    --background: var(--bg, #16171d);
+    --layer: var(--code-bg, #1f2028);
+    --border: var(--border, #2e303a);
+    --accent: var(--accent, #c084fc);
+  }
+}
+
+@media (max-width: 768px) {
+  .basket-box {
+    top: 24px !important;
+    right: 24px !important;
+  }
+}
