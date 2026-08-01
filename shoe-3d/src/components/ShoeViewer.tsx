@@ -9,17 +9,26 @@ export function ShoeViewer() {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // UI State
-  const [color, setColor] = React.useState("#ffffff");
+  const [tshirtColor, setTshirtColor] = React.useState("#ffffff");
+  const [pantColor, setPantColor] = React.useState("#ffffff");
+  const [bodyColor, setBodyColor] = React.useState("#ffffff");
+  const [animations, setAnimations] = React.useState<string[]>([]);
+  const [currentAnimation, setCurrentAnimation] = React.useState<string>("");
+  const [animationSpeed, setAnimationSpeed] = React.useState(0.5);
   const [autoRotate, setAutoRotate] = React.useState(true);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [showPanel, setShowPanel] = React.useState(false);
 
   // Three.js refs
   const cameraRef = React.useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = React.useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = React.useRef<OrbitControls | null>(null);
   const modelRef = React.useRef<THREE.Group | null>(null);
-  const materialsRef = React.useRef<THREE.MeshStandardMaterial[]>([]);
+  const mixerRef = React.useRef<THREE.AnimationMixer | null>(null);
+  const actionsRef = React.useRef<Record<string, THREE.AnimationAction>>({});
+  const clockRef = React.useRef(new THREE.Clock());
+  const materialsRef = React.useRef<{ name: string; mat: THREE.MeshStandardMaterial }[]>([]);
   const animationIdRef = React.useRef<number>(0);
 
   // Camera presets
@@ -107,7 +116,7 @@ export function ShoeViewer() {
     const loader = new GLTFLoader();
 
     loader.load(
-      "/textures/models/Meshy_AI_Frosted_Aurora_biped_Animation_Running_withSkin.glb", // ← your file path
+      "/textures/Meshy_AI_Meshy_Merged_Animations.glb?v=" + Date.now(), // ← your file path with cache buster
       (gltf) => {
         const model = gltf.scene;
         modelRef.current = model;
@@ -126,7 +135,7 @@ export function ShoeViewer() {
         model.scale.setScalar(scale);
 
         // Enable shadows + collect materials
-        const materials: THREE.MeshStandardMaterial[] = [];
+        const materials: { name: string; mat: THREE.MeshStandardMaterial }[] = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -147,13 +156,38 @@ export function ShoeViewer() {
                 }
                 child.material = newMat;
               }
-              materials.push(child.material as THREE.MeshStandardMaterial);
+              materials.push({
+                name: child.name.toLowerCase(),
+                mat: child.material as THREE.MeshStandardMaterial
+              });
             }
           }
         });
 
         materialsRef.current = materials;
         scene.add(model);
+
+        // Setup Animations
+        if (gltf.animations && gltf.animations.length > 0) {
+          const mixer = new THREE.AnimationMixer(model);
+          mixer.timeScale = 0.5;
+          mixerRef.current = mixer;
+          const animNames: string[] = [];
+
+          gltf.animations.forEach((clip) => {
+            animNames.push(clip.name);
+            actionsRef.current[clip.name] = mixer.clipAction(clip);
+          });
+          setAnimations(animNames);
+
+          // Find a "run" animation, otherwise play the first one
+          const defaultAnim = animNames.find((n) => n.toLowerCase().includes("run")) || animNames[0];
+          if (defaultAnim) {
+            setCurrentAnimation(defaultAnim);
+            actionsRef.current[defaultAnim].play();
+          }
+        }
+
         setLoading(false);
       },
       undefined,
@@ -167,6 +201,11 @@ export function ShoeViewer() {
     // ========== ANIMATION LOOP ==========
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
+
+      const delta = clockRef.current.getDelta();
+      if (mixerRef.current) {
+        mixerRef.current.update(delta);
+      }
 
       if (autoRotate && modelRef.current) {
         modelRef.current.rotation.y += 0.004;
@@ -214,11 +253,27 @@ export function ShoeViewer() {
 
   // Live color change
   React.useEffect(() => {
-    materialsRef.current.forEach((mat) => {
-      mat.color.set(color);
+    materialsRef.current.forEach(({ name, mat }) => {
+      const lowerName = name.toLowerCase();
+      const matName = mat.name ? mat.name.toLowerCase() : "";
+      
+      if (lowerName.includes("pant") || lowerName.includes("bottom") || lowerName.includes("leg") || matName.includes("pant")) {
+        mat.color.set(pantColor);
+      } else if (lowerName.includes("shirt") || lowerName.includes("top") || lowerName.includes("torso") || matName.includes("shirt")) {
+        mat.color.set(tshirtColor);
+      } else {
+        mat.color.set(bodyColor);
+      }
       mat.needsUpdate = true;
     });
-  }, [color]);
+  }, [tshirtColor, pantColor, bodyColor]);
+
+  // Animation speed control
+  React.useEffect(() => {
+    if (mixerRef.current) {
+      mixerRef.current.timeScale = animationSpeed;
+    }
+  }, [animationSpeed]);
 
   // Handlers
   const setCameraView = (view: keyof typeof cameraPresets) => {
@@ -236,51 +291,202 @@ export function ShoeViewer() {
   };
 
   const resetAll = () => {
-    setColor("#ffffff");
+    setTshirtColor("#ffffff");
+    setPantColor("#ffffff");
+    setBodyColor("#ffffff");
     setAutoRotate(true);
     setCameraView("side");
     if (modelRef.current) modelRef.current.rotation.y = 0;
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* 3D Canvas */}
-      <div className="flex-1 relative">
-        <div
-          ref={containerRef}
-          className="w-full h-[520px] md:h-[650px] bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 cursor-grab active:cursor-grabbing"
-        />
+    <div className="relative w-full h-screen bg-zinc-950 flex items-center justify-center overflow-hidden">
+      {/* Background 3D Canvas */}
+      <div
+        ref={containerRef}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing z-0"
+      />
 
-        {/* Loading / Error overlay */}
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 rounded-2xl">
-            <p className="text-zinc-300 text-lg">Loading your shoe model...</p>
+      {/* Overlay Text around the model */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-8 md:p-16 z-[9999]">
+        <div className="flex justify-between items-start">
+          <div className="pointer-events-auto">
+            <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter drop-shadow-lg selection:bg-blue-500/30 leading-tight">
+              MD Kayesur
+            </h1>
+            <h2 className="text-xl md:text-2xl font-bold text-blue-400 mt-2 uppercase tracking-wide">
+              Full Stack Developer
+            </h2>
+            <p className="mt-4 text-zinc-300 max-w-sm text-lg font-medium drop-shadow-md selection:bg-blue-500/30">
+              Now I am learning 3D animation.
+            </p>
           </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/90 rounded-2xl">
-            <p className="text-red-400 text-center px-4">{error}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Controls Panel */}
-      <div className="w-full lg:w-80 space-y-5 bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold">Real Shoe Viewer</h2>
-
-        {/* Color */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-300">Color Tint</span>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
-            />
-            <span className="text-xs text-zinc-500 font-mono w-16">{color}</span>
+          <div className="text-right drop-shadow-md pointer-events-auto selection:bg-blue-500/30">
+            <p className="text-2xl font-bold text-white uppercase tracking-wider">Configurator</p>
+            <p className="text-zinc-400 text-sm mt-1">Premium Quality</p>
           </div>
         </div>
+
+        <div className="flex justify-between items-end">
+          <div className="max-w-md drop-shadow-md pointer-events-auto selection:bg-blue-500/30">
+            <h2 className="text-2xl font-bold text-white mb-2">Fully Interactive</h2>
+            <p className="text-zinc-300 text-sm">
+              Use the control panel on the right to change colors, animations, and camera angles on the fly.
+            </p>
+          </div>
+          <div className="text-zinc-400 font-mono text-xs uppercase tracking-widest text-right drop-shadow-md hidden md:block lg:mr-80 pr-10 pointer-events-auto selection:bg-blue-500/30">
+            Scroll to zoom<br/>Right-click to pan
+          </div>
+        </div>
+      </div>
+
+      {/* Loading / Error overlay */}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/80 z-20 backdrop-blur-sm">
+          <p className="text-white text-xl animate-pulse tracking-widest uppercase">Initializing Engine...</p>
+        </div>
+      )}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/90 z-20">
+          <p className="text-red-400 text-center px-4">{error}</p>
+        </div>
+      )}
+
+      {/* Floating Auto-Rotate Toggle (Bottom Center) */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={() => setAutoRotate((v) => !v)}
+          className={`flex items-center gap-2 px-6 py-3 backdrop-blur-md border rounded-full shadow-lg transition text-sm font-bold uppercase tracking-wider ${
+            autoRotate 
+              ? "bg-zinc-100/90 border-white text-zinc-900 hover:bg-white" 
+              : "bg-zinc-900/80 border-zinc-700/50 text-white hover:bg-zinc-800"
+          }`}
+        >
+          {autoRotate ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+              Stop Rotation
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-zinc-500"></span>
+              Auto Rotate
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Settings / Info Toggle Button */}
+      <div className="absolute right-6 top-6 z-40">
+        <button
+          onClick={() => setShowPanel(!showPanel)}
+          className="w-12 h-12 flex items-center justify-center bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-lg hover:bg-zinc-800 transition text-white group"
+          title="Toggle Customization"
+        >
+          {showPanel ? (
+            <svg className="w-6 h-6 text-zinc-300 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <span className="font-serif italic text-2xl text-zinc-300 group-hover:text-white">i</span>
+          )}
+        </button>
+      </div>
+
+      {/* Controls Panel (Floating) */}
+      <div 
+        className={`pointer-events-auto absolute right-6 top-1/2 -translate-y-1/2 w-80 space-y-5 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 rounded-2xl p-6 shadow-2xl z-30 max-h-[85vh] overflow-y-auto custom-scrollbar transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+          showPanel ? "translate-x-0 opacity-100 visible" : "translate-x-[150%] opacity-0 invisible"
+        }`}
+      >
+        <h2 className="text-lg font-semibold text-white border-b border-zinc-800 pb-2">Customization</h2>
+
+        {/* Colors */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-zinc-300">T-Shirt Color</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={tshirtColor}
+                onChange={(e) => setTshirtColor(e.target.value)}
+                className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-zinc-300">Pant Color</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={pantColor}
+                onChange={(e) => setPantColor(e.target.value)}
+                className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-zinc-300">Body Color</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={bodyColor}
+                onChange={(e) => setBodyColor(e.target.value)}
+                className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Animations */}
+        {animations.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-zinc-400 mb-2">Animations</p>
+              <div className="grid grid-cols-2 gap-2">
+                {animations.map((animName) => (
+                  <button
+                    key={animName}
+                    onClick={() => {
+                      if (currentAnimation === animName) return;
+                      const prevAction = actionsRef.current[currentAnimation];
+                      const nextAction = actionsRef.current[animName];
+
+                      if (prevAction) {
+                        nextAction.reset().play();
+                        prevAction.crossFadeTo(nextAction, 0.3, true);
+                      } else {
+                        nextAction.reset().play();
+                      }
+                      setCurrentAnimation(animName);
+                    }}
+                    className={`px-2 py-1.5 text-xs rounded-lg transition ${
+                      currentAnimation === animName ? "bg-blue-600" : "bg-zinc-800 hover:bg-zinc-700"
+                    }`}
+                  >
+                    {animName}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-zinc-300">Speed</span>
+                <span className="text-xs text-zinc-500 font-mono w-8 text-right">{animationSpeed.toFixed(1)}x</span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="2.0"
+                step="0.1"
+                value={animationSpeed}
+                onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
+                className="w-full h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Camera presets */}
         <div>
@@ -306,19 +512,6 @@ export function ShoeViewer() {
           </div>
         </div>
 
-        {/* Auto Rotate */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm">Auto Rotate</span>
-          <button
-            onClick={() => setAutoRotate((v) => !v)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-              autoRotate ? "bg-blue-600" : "bg-zinc-700"
-            }`}
-          >
-            {autoRotate ? "ON" : "OFF"}
-          </button>
-        </div>
-
         {/* Actions */}
         <div className="flex gap-2 pt-1">
           <button
@@ -334,10 +527,6 @@ export function ShoeViewer() {
             ↺ Reset
           </button>
         </div>
-
-        <p className="text-xs text-zinc-500 pt-2">
-          Drag to rotate • Scroll to zoom • Right-click to pan
-        </p>
       </div>
     </div>
   );
