@@ -4,7 +4,13 @@ import * as React from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
 export function ShoeViewer() {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const interactionRef = React.useRef<HTMLDivElement>(null);
@@ -270,13 +276,37 @@ export function ShoeViewer() {
     };
   }, []);
 
-  // Live color change
+  // Live color change with smooth animation
   React.useEffect(() => {
+    const targetColor = new THREE.Color(modelTint);
     materialsRef.current.forEach(({ mat }) => {
-      mat.color.set(modelTint);
-      mat.needsUpdate = true;
+      gsap.to(mat.color, {
+        r: targetColor.r,
+        g: targetColor.g,
+        b: targetColor.b,
+        duration: 0.8,
+        ease: "power2.out",
+      });
     });
   }, [modelTint]);
+
+  // Scroll color trigger
+  useGSAP(() => {
+    const sections = document.querySelectorAll(".color-section");
+    
+    sections.forEach((section) => {
+      const color = section.getAttribute("data-color");
+      if (color) {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top center",
+          end: "bottom center",
+          onEnter: () => setModelTint(color),
+          onEnterBack: () => setModelTint(color),
+        });
+      }
+    });
+  });
 
   // Animation speed control
   React.useEffect(() => {
