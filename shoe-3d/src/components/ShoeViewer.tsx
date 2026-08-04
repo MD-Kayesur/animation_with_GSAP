@@ -7,15 +7,14 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export function ShoeViewer() {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const interactionRef = React.useRef<HTMLDivElement>(null);
 
   // UI State
-  const [tshirtColor, setTshirtColor] = React.useState("#ffffff");
-  const [pantColor, setPantColor] = React.useState("#ffffff");
-  const [bodyColor, setBodyColor] = React.useState("#ffffff");
+  const [modelTint, setModelTint] = React.useState("#ffffff");
   const [animations, setAnimations] = React.useState<string[]>([]);
   const [currentAnimation, setCurrentAnimation] = React.useState<string>("");
   const [animationSpeed, setAnimationSpeed] = React.useState(0.5);
-  const [autoRotate, setAutoRotate] = React.useState(true);
+  const [autoRotate, setAutoRotate] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [showPanel, setShowPanel] = React.useState(false);
@@ -30,6 +29,12 @@ export function ShoeViewer() {
   const clockRef = React.useRef(new THREE.Clock());
   const materialsRef = React.useRef<{ name: string; mat: THREE.MeshStandardMaterial }[]>([]);
   const animationIdRef = React.useRef<number>(0);
+  const autoRotateRef = React.useRef(autoRotate);
+  const slideAngleRef = React.useRef(0);
+
+  React.useEffect(() => {
+    autoRotateRef.current = autoRotate;
+  }, [autoRotate]);
 
   // Camera presets
   const cameraPresets = {
@@ -70,7 +75,7 @@ export function ShoeViewer() {
     rendererRef.current = renderer;
 
     // ========== CONTROLS ==========
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, interactionRef.current!);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
     controls.minDistance = 1.8;
@@ -112,11 +117,16 @@ export function ShoeViewer() {
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // ========== LOAD YOUR GLB MODEL ==========
+    // ========== LOAD YOUR GLB MODEL & TEXTURE ==========
+    const textureLoader = new THREE.TextureLoader();
+    const fallbackTexture = textureLoader.load("/textures/char_texture.png");
+    fallbackTexture.flipY = false;
+    fallbackTexture.colorSpace = THREE.SRGBColorSpace;
+    
     const loader = new GLTFLoader();
 
     loader.load(
-      "/textures/Meshy_AI_Meshy_Merged_Animations.glb?v=" + Date.now(), // ← your file path with cache buster
+      "/textures/Meshy_AI_Meshy_Merged_Animations (1).glb?v=" + Date.now(), // ← your file path with cache buster
       (gltf) => {
         const model = gltf.scene;
         modelRef.current = model;
@@ -150,15 +160,23 @@ export function ShoeViewer() {
                   roughness: 0.5,
                   metalness: 0.05,
                 });
-                // Copy texture if exists
                 if ((oldMat as any).map) {
                   newMat.map = (oldMat as any).map;
                 }
                 child.material = newMat;
               }
+
+              const stdMat = child.material as THREE.MeshStandardMaterial;
+              
+              // The new GLB is missing textures, so we apply the extracted texture manually
+              if (!stdMat.map) {
+                stdMat.map = fallbackTexture;
+                stdMat.needsUpdate = true;
+              }
+
               materials.push({
                 name: child.name.toLowerCase(),
-                mat: child.material as THREE.MeshStandardMaterial
+                mat: stdMat
               });
             }
           }
@@ -207,8 +225,9 @@ export function ShoeViewer() {
         mixerRef.current.update(delta);
       }
 
-      if (autoRotate && modelRef.current) {
-        modelRef.current.rotation.y += 0.004;
+      if (autoRotateRef.current && modelRef.current) {
+        slideAngleRef.current += 0.015;
+        modelRef.current.rotation.y = Math.sin(slideAngleRef.current) * 0.8;
       }
 
       if (targetCamPos && cameraRef.current) {
@@ -253,20 +272,11 @@ export function ShoeViewer() {
 
   // Live color change
   React.useEffect(() => {
-    materialsRef.current.forEach(({ name, mat }) => {
-      const lowerName = name.toLowerCase();
-      const matName = mat.name ? mat.name.toLowerCase() : "";
-      
-      if (lowerName.includes("pant") || lowerName.includes("bottom") || lowerName.includes("leg") || matName.includes("pant")) {
-        mat.color.set(pantColor);
-      } else if (lowerName.includes("shirt") || lowerName.includes("top") || lowerName.includes("torso") || matName.includes("shirt")) {
-        mat.color.set(tshirtColor);
-      } else {
-        mat.color.set(bodyColor);
-      }
+    materialsRef.current.forEach(({ mat }) => {
+      mat.color.set(modelTint);
       mat.needsUpdate = true;
     });
-  }, [tshirtColor, pantColor, bodyColor]);
+  }, [modelTint]);
 
   // Animation speed control
   React.useEffect(() => {
@@ -291,10 +301,8 @@ export function ShoeViewer() {
   };
 
   const resetAll = () => {
-    setTshirtColor("#ffffff");
-    setPantColor("#ffffff");
-    setBodyColor("#ffffff");
-    setAutoRotate(true);
+    setModelTint("#ffffff");
+    setAutoRotate(false);
     setCameraView("side");
     if (modelRef.current) modelRef.current.rotation.y = 0;
   };
@@ -304,38 +312,54 @@ export function ShoeViewer() {
       {/* Background 3D Canvas */}
       <div
         ref={containerRef}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing z-0"
+        className="absolute inset-0 z-0 pointer-events-none"
+      />
+      
+      {/* Interaction Layer for 3D (Constrained to middle) */}
+      <div
+        ref={interactionRef}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[400px] md:h-[700px] z-10 cursor-grab active:cursor-grabbing rounded-3xl"
       />
 
       {/* Overlay Text around the model */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-8 md:p-16 z-[9999]">
         <div className="flex justify-between items-start">
           <div className="pointer-events-auto">
-            <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter drop-shadow-lg selection:bg-blue-500/30 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 uppercase tracking-tighter drop-shadow-lg selection:bg-blue-500/30 leading-tight">
               MD Kayesur
             </h1>
-            <h2 className="text-xl md:text-2xl font-bold text-blue-400 mt-2 uppercase tracking-wide">
-              Full Stack Developer
+            <h2 className="text-xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 mt-2 uppercase tracking-wide">
+              Full Stack Developer & 3D Enthusiast
             </h2>
-            <p className="mt-4 text-zinc-300 max-w-sm text-lg font-medium drop-shadow-md selection:bg-blue-500/30">
-              Now I am learning 3D animation.
+            <p className="mt-6 text-zinc-300 max-w-md text-lg font-medium drop-shadow-md selection:bg-blue-500/30 leading-relaxed border-l-4 border-indigo-500 pl-4 bg-zinc-900/40 p-3 rounded-r-lg backdrop-blur-sm">
+              Passionate about bridging the gap between web development and immersive 3D experiences. Currently exploring the limitless possibilities of Three.js and modern web animations.
             </p>
           </div>
-          <div className="text-right drop-shadow-md pointer-events-auto selection:bg-blue-500/30">
-            <p className="text-2xl font-bold text-white uppercase tracking-wider">Configurator</p>
-            <p className="text-zinc-400 text-sm mt-1">Premium Quality</p>
+          <div className="text-right drop-shadow-md pointer-events-auto selection:bg-blue-500/30 bg-zinc-900/50 p-6 rounded-2xl backdrop-blur-md border border-zinc-700/50">
+            <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-amber-400 to-orange-600 uppercase tracking-wider mb-1">Configurator</p>
+            <div className="flex items-center justify-end gap-2">
+              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+              <p className="text-zinc-300 text-sm font-semibold tracking-widest uppercase">Premium Quality</p>
+            </div>
           </div>
         </div>
 
         <div className="flex justify-between items-end">
-          <div className="max-w-md drop-shadow-md pointer-events-auto selection:bg-blue-500/30">
-            <h2 className="text-2xl font-bold text-white mb-2">Fully Interactive</h2>
-            <p className="text-zinc-300 text-sm">
-              Use the control panel on the right to change colors, animations, and camera angles on the fly.
+          <div className="max-w-md drop-shadow-md pointer-events-auto selection:bg-blue-500/30 bg-zinc-900/50 p-6 rounded-2xl backdrop-blur-md border border-zinc-700/50">
+            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-400 mb-3 uppercase tracking-wide">Fully Interactive</h2>
+            <p className="text-zinc-300 text-sm leading-relaxed">
+              Experience the next generation of web design. Use the control panel on the right to dynamically change colors, switch animations, and adjust camera angles on the fly.
             </p>
           </div>
-          <div className="text-zinc-400 font-mono text-xs uppercase tracking-widest text-right drop-shadow-md hidden md:block lg:mr-80 pr-10 pointer-events-auto selection:bg-blue-500/30">
-            Scroll to zoom<br/>Right-click to pan
+          <div className="text-zinc-300 font-mono text-sm uppercase tracking-widest text-right drop-shadow-md hidden md:flex flex-col gap-2 lg:mr-80 pr-10 pointer-events-auto selection:bg-blue-500/30 bg-zinc-900/50 p-4 rounded-xl backdrop-blur-sm border border-zinc-700/50">
+            <div className="flex items-center gap-3 justify-end">
+              <span>Scroll to zoom</span>
+              <div className="w-6 h-6 border border-zinc-500 rounded-full flex items-center justify-center text-xs">↕</div>
+            </div>
+            <div className="flex items-center gap-3 justify-end">
+              <span>Right-click to pan</span>
+              <div className="w-6 h-6 border border-zinc-500 rounded-full flex items-center justify-center text-xs">↔</div>
+            </div>
           </div>
         </div>
       </div>
@@ -404,34 +428,12 @@ export function ShoeViewer() {
         {/* Colors */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-300">T-Shirt Color</span>
+            <span className="text-sm text-zinc-300">Model Tint</span>
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={tshirtColor}
-                onChange={(e) => setTshirtColor(e.target.value)}
-                className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
-              />
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-300">Pant Color</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={pantColor}
-                onChange={(e) => setPantColor(e.target.value)}
-                className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
-              />
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-300">Body Color</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={bodyColor}
-                onChange={(e) => setBodyColor(e.target.value)}
+                value={modelTint}
+                onChange={(e) => setModelTint(e.target.value)}
                 className="w-9 h-9 rounded cursor-pointer bg-transparent border-0"
               />
             </div>
